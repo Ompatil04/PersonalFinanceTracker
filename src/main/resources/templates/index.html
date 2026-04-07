@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><title>FinTrack — Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;}
+    .navbar{background:#161b22;border-bottom:1px solid #30363d;}
+    .brand{font-weight:700;font-size:1.3rem;color:#58a6ff;}
+    .stat-card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:1.5rem;}
+    .lbl{font-size:.75rem;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+    .val{font-size:2rem;font-weight:700;}
+    .green{color:#3fb950;}.red{color:#f85149;}
+    .acc-card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:1.5rem;text-decoration:none;color:inherit;display:block;transition:border-color .2s;}
+    .acc-card:hover{border-color:#58a6ff;color:inherit;}
+    .badge-c{background:rgba(88,166,255,.15);color:#58a6ff;border-radius:50px;padding:3px 12px;font-size:.8rem;}
+    .badge-s{background:rgba(63,185,80,.15);color:#3fb950;border-radius:50px;padding:3px 12px;font-size:.8rem;}
+    .badge-cr{background:rgba(248,81,73,.15);color:#f85149;border-radius:50px;padding:3px 12px;font-size:.8rem;}
+    .btn-new{background:#238636;border:none;color:#fff;border-radius:8px;padding:8px 18px;}
+    .btn-new:hover{background:#2ea043;color:#fff;}
+    .modal-content{background:#161b22;border:1px solid #30363d;color:#e6edf3;}
+    .form-control,.form-select{background:#0d1117;border:1px solid #30363d;color:#e6edf3;}
+    .form-control:focus,.form-select:focus{background:#0d1117;border-color:#58a6ff;color:#e6edf3;box-shadow:none;}
+    .form-label{color:#8b949e;font-size:.85rem;}
+  </style>
+</head>
+<body>
+<nav class="navbar px-4 py-3 d-flex justify-content-between">
+  <span class="brand">💰 FinTrack</span>
+  <span style="color:#8b949e;" th:text="'Welcome, ' + ${user.name}"></span>
+</nav>
+<div class="container py-4">
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="lbl">Total Balance</div>
+        <div class="val" th:classappend="${totalBalance >= 0}?'green':'red'"
+             th:text="'$' + ${#numbers.formatDecimal(totalBalance,1,2)}"></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="lbl">Total Accounts</div>
+        <div class="val" th:text="${#lists.size(accounts)}"></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="lbl">Email</div>
+        <div style="font-size:1rem;margin-top:8px;" th:text="${user.email}"></div>
+      </div>
+    </div>
+  </div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Accounts</h5>
+    <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#newAccModal">+ New Account</button>
+  </div>
+  <div class="row g-3" th:if="${not #lists.isEmpty(accounts)}">
+    <div class="col-md-4" th:each="acc : ${accounts}">
+      <a th:href="@{/account/{id}(id=${acc.id})}" class="acc-card">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <span style="font-weight:600;" th:text="${acc.name}"></span>
+          <span th:class="${acc.type.name()=='CHECKING'}?'badge-c':(${acc.type.name()=='SAVINGS'}?'badge-s':'badge-cr')"
+                th:text="${acc.type}"></span>
+        </div>
+        <div class="lbl">Balance</div>
+        <div style="font-size:1.6rem;font-weight:700;"
+             th:classappend="${acc.balance>=0}?'green':'red'"
+             th:text="'$'+${#numbers.formatDecimal(acc.balance,1,2)}"></div>
+        <div style="color:#8b949e;font-size:.8rem;margin-top:8px;">View transactions →</div>
+      </a>
+    </div>
+  </div>
+  <div th:if="${#lists.isEmpty(accounts)}" style="text-align:center;padding:3rem;color:#8b949e;">
+    <div style="font-size:3rem;">🏦</div><p>No accounts yet. Create your first one!</p>
+  </div>
+</div>
+<div class="modal fade" id="newAccModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content p-4">
+    <h5 class="mb-4">New Account</h5>
+    <form th:action="@{/account/create}" method="post">
+      <input type="hidden" name="userId" th:value="${user.id}">
+      <div class="mb-3">
+        <label class="form-label">Account Name</label>
+        <input type="text" name="name" class="form-control" placeholder="e.g. Main Checking" required>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Type</label>
+        <select name="type" class="form-select">
+          <option th:each="t : ${accountTypes}" th:value="${t}" th:text="${t}"></option>
+        </select>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-new flex-grow-1">Create</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
